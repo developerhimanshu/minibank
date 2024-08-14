@@ -9,9 +9,8 @@ router.get("/balance", authMiddleware, async (req, res) => {
   const userId = req.userId;
 
   const accDetails = await Account.find({ userId: userId });
-
   return res.status(200).json({
-    balance: accDetails.balance,
+    balance: accDetails[0].balance,
   });
 });
 
@@ -19,9 +18,10 @@ router.post("/transfer", authMiddleware, async (req, res) => {
   const session = await mongoose.startSession();
 
   session.startTransaction();
-  const { to, amount } = req.body();
-
-  const account = Account.findOne({ userId: req.userId }).session(session);
+  const { to, amount } = req.body;
+  const account = await Account.findOne({ userId: req.userId }).session(
+    session
+  );
 
   if (!account || account.balance < amount) {
     await session.abortTransaction();
@@ -40,10 +40,15 @@ router.post("/transfer", authMiddleware, async (req, res) => {
 
   await Account.updateOne(
     { userId: req.userId },
-    { $inc: { balance: -amount } }
+    { $inc: { balance: -amount } },
+    { session }
   );
 
-  await Account.updateOne({ userid: to }, { $inc: { balance: amount } });
+  await Account.updateOne(
+    { userId: toAccount.userId },
+    { $inc: { balance: amount } },
+    { session }
+  );
 
   await session.commitTransaction();
 
