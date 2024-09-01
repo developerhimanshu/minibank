@@ -1,10 +1,26 @@
-export const SendMoney = () => {
+import { Dispatch, SetStateAction } from "react";
+import { FaTimes } from "react-icons/fa";
+
+export const SendMoneyDialog = ({
+  onClose,
+}: {
+  onClose: Dispatch<SetStateAction<boolean>>;
+}) => {
   return (
-    <div className="flex justify-center h-screen bg-gray-100">
+    <div className="flex justify-center h-screen bg-gray-100/90 z-10 absolute top-0 w-full ">
       <div className="h-full flex flex-col justify-center">
-        <div className="border h-min text-card-foreground max-w-md p-4 space-y-8 w-96 bg-white shadow-lg rounded-lg">
-          <div className="flex flex-col space-y-1.5 p-6">
-            <h2 className="text-3xl font-bold text-center">Send Money</h2>
+        <div className="border h-min text-card-foreground max-w-md p-4 space-y-8 w-96 bg-white shadow-lg rounded-lg relative">
+          <div className="flex items-center justify-center ">
+            <div className="flex flex-col space-y-1.5 p-6">
+              <h2 className="text-3xl font-bold text-center">Send Money</h2>
+            </div>
+            <FaTimes
+              size={25}
+              className="absolute right-3  top-3 cursor-pointer"
+              onClick={() => {
+                onClose(false);
+              }}
+            />
           </div>
           <div className="p-6">
             <div className="flex items-center space-x-4">
