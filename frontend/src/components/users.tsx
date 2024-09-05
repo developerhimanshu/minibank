@@ -1,22 +1,34 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Button from "./button";
 import { SendMoneyDialog } from "./sendMoneyDialog";
+import axios from "axios";
 
-type userType = {
+export type userType = {
   firstName: string;
   lastName: string;
   _id: number;
+} | null;
+
+type userPropType = {
+  setShowSendMoneyDialog: Dispatch<SetStateAction<boolean>>;
+  showSendMoneyDialog: boolean;
 };
 
-const Users = () => {
-  const [users, setUsers] = useState<userType[]>([
-    {
-      firstName: "Himanshu",
-      lastName: "Singh",
-      _id: 1,
-    },
-  ]);
-  const [showSendMoneyDialog, setShowSendMoneyDialog] = useState(false);
+const Users = ({
+  showSendMoneyDialog,
+  setShowSendMoneyDialog,
+}: userPropType) => {
+  const [users, setUsers] = useState([]);
+  const [filter, setFilter] = useState<string>("");
+  const [toSendMoney, setToSendMoney] = useState<userType>(null);
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/api/v1/user/bulk?filter=" + filter)
+      .then((response) => {
+        setUsers(response.data.user);
+      });
+  }, [filter]);
   return (
     <>
       <div className="flex flex-col">
@@ -26,22 +38,29 @@ const Users = () => {
             type="text"
             placeholder="Search users.."
             className="w-full px-2 py-1 rounded border border-slate-200 outline-none"
+            onChange={(e) => {
+              setFilter(e.target.value);
+            }}
           />
         </div>
         <div>
-          {users.map((user) => {
+          {users.map((user: userType) => {
             return (
               <User
-                key={user._id}
+                key={user!._id}
                 user={user}
                 setShowSendMoneyDialog={setShowSendMoneyDialog}
+                setToSendMoney={setToSendMoney}
               />
             );
           })}
         </div>
       </div>
       {showSendMoneyDialog && (
-        <SendMoneyDialog onClose={setShowSendMoneyDialog} />
+        <SendMoneyDialog
+          onClose={setShowSendMoneyDialog}
+          toSendMoney={toSendMoney}
+        />
       )}
     </>
   );
@@ -50,12 +69,15 @@ const Users = () => {
 const User = ({
   user,
   setShowSendMoneyDialog,
+  setToSendMoney,
 }: {
   user: userType;
   setShowSendMoneyDialog: Dispatch<SetStateAction<boolean>>;
+  setToSendMoney: Dispatch<SetStateAction<userType>>;
 }) => {
+  if (!user) return <></>;
   return (
-    <div className="flex justify-between px-8">
+    <div className="flex justify-between px-8 my-4 ">
       <div className="flex gap-2 items-center">
         <div className="h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center">
           <p>{user.firstName[0]}</p>
@@ -67,6 +89,7 @@ const User = ({
       <div>
         <Button
           onClick={() => {
+            setToSendMoney(user);
             setShowSendMoneyDialog(true);
           }}
           label="Send Money"

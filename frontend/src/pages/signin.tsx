@@ -2,10 +2,31 @@ import { useRef } from "react";
 import Heading from "../components/heading";
 import InputBox from "../components/inputbox";
 import { SubHeading } from "../components/subheading";
+import { Link, redirect, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const SignIn = () => {
-  const onButtonClick = () => {
-    console.log(emailRef.current, "and", passwordRef.current);
+  const navigate = useNavigate();
+  const onButtonClick = async () => {
+    const data = {
+      username: emailRef.current,
+      password: passwordRef.current,
+    };
+    const response = await axios.post(
+      "http://localhost:3000/api/v1/user/signin",
+      data
+    );
+    if (response.status == 200) {
+      const user = {
+        name: response.data.name,
+        token: response.data.token,
+        id: response.data.id,
+      };
+      localStorage.setItem("user", JSON.stringify(user));
+      navigate("/dashboard");
+    } else {
+      navigate("/signin");
+    }
   };
 
   const emailRef = useRef("");
@@ -43,7 +64,12 @@ const SignIn = () => {
         >
           Sign In
         </button>
-        <p>Don't have an account? Sign Up</p>
+        <p>
+          Don't have an account?{" "}
+          <Link to="/signup" className="underline">
+            Sign Up
+          </Link>
+        </p>
       </div>
     </div>
   );

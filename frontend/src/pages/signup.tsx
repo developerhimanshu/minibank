@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useRef } from "react";
-import { redirect } from "react-router-dom";
+import { Link, redirect, useNavigate } from "react-router-dom";
 import Heading from "../components/heading";
 
 const Signup = () => {
@@ -8,7 +8,7 @@ const Signup = () => {
   const lastName = useRef("");
   const email = useRef("");
   const password = useRef("");
-
+  const navigate = useNavigate();
   const onButtonClick = () => {
     const data = {
       firstName: firstName.current,
@@ -19,9 +19,13 @@ const Signup = () => {
 
     axios.post("http://localhost:3000/api/v1/user/signup", data).then((res) => {
       if (res.status === 200) {
-        localStorage.setItem("token", res.data.token);
-        redirect("/dashboard");
-      } else redirect("/signup");
+        const user = {
+          name: res.data.name,
+          token: res.data.token,
+          id: res.data.id,
+        };
+        localStorage.setItem("user", JSON.stringify(user));
+      } else navigate("/signup");
     });
   };
   return (
@@ -79,7 +83,12 @@ const Signup = () => {
         >
           Sign Up
         </button>
-        <p>Already have an account? Login</p>
+        <p>
+          Already have an account?{" "}
+          <Link to="/signup" className="underline">
+            signin
+          </Link>
+        </p>
       </div>
     </div>
   );
